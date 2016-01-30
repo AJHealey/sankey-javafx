@@ -45,7 +45,36 @@ public class SankeyChart extends Chart{
 
     @Override
     protected void layoutChartChildren(double top, double left, double width, double height) {
+        computeNodesValue();
 
+    }
+
+    private void computeNodesValue() {
+        nodes.stream()
+                .forEach(node -> updateValueFor(node));
+    }
+
+    private void updateValueFor(SankeyNode node) {
+        node.setValue(
+                Math.max(
+                        sumOfLinksFrom(node),
+                        sumOfLinksTargeting(node)
+                )
+        );
+    }
+
+    private double sumOfLinksTargeting(SankeyNode node) {
+        return links.stream()
+                .filter(link -> link.getTarget().equals(node))
+                .mapToDouble(SankeyLink::getValue)
+                .sum();
+    }
+
+    private double sumOfLinksFrom(SankeyNode node) {
+        return links.stream()
+                .filter(link -> link.getSource().equals(node))
+                .mapToDouble(SankeyLink::getValue)
+                .sum();
     }
 
 }
