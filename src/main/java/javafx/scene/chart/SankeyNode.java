@@ -5,7 +5,8 @@ package javafx.scene.chart;
  */
 public class SankeyNode {
     private String name;
-    private double value;
+    private double value = 0.0;
+    private int column = 0;
 
     public SankeyNode(String name) {
         this.name = name;
@@ -21,5 +22,17 @@ public class SankeyNode {
 
     void setValue(double value) {
         this.value = value;
+    }
+
+    int getColumn() {
+        return column;
+    }
+
+    void setColumn(int column) {
+        this.column = column;
+    }
+
+    void moveRight() {
+        this.column++;
     }
 }

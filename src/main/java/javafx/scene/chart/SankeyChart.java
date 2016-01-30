@@ -1,7 +1,12 @@
 package javafx.scene.chart;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.lang.Math.max;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Adrian Healey <adrian.j.healey@gmail.com>
@@ -46,24 +51,48 @@ public class SankeyChart extends Chart{
     @Override
     protected void layoutChartChildren(double top, double left, double width, double height) {
         computeNodesValue();
+        resetNodesHorizontalPosition();
+        computeNodesHorizontalPositionFor(nodes);
 
     }
 
-    private void computeNodesValue() {
+    // TODO - manage cycles
+    void computeNodesHorizontalPositionFor(Collection<SankeyNode> nodes) {
+        checkArgument(nodes != null, "nodes cannot be null");
+
+        if(! nodes.isEmpty()) {
+            Set<SankeyNode> targetedNodes = links.stream()
+                    .filter(link -> nodes.contains(link.getSource()))
+                    .map(SankeyLink::getTarget)
+                    .collect(toSet());
+            targetedNodes.stream()
+                    .forEach(SankeyNode::moveRight);
+            computeNodesHorizontalPositionFor(targetedNodes);
+        }
+    }
+
+    void resetNodesHorizontalPosition() {
         nodes.stream()
-                .forEach(node -> updateValueFor(node));
+                .forEach(node -> node.setColumn(0));
     }
 
-    private void updateValueFor(SankeyNode node) {
+    void computeNodesValue() {
+        nodes.stream()
+                .forEach(this::updateValueFor);
+    }
+
+    void updateValueFor(SankeyNode node) {
+        checkArgument(node != null, "node cannot be null");
+
         node.setValue(
-                Math.max(
+                max(
                         sumOfLinksFrom(node),
                         sumOfLinksTargeting(node)
                 )
         );
     }
 
-    private double sumOfLinksTargeting(SankeyNode node) {
+    double sumOfLinksTargeting(SankeyNode node) {
         return links.stream()
                 .filter(link -> link.getTarget().equals(node))
                 .mapToDouble(SankeyLink::getValue)
