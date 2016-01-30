@@ -1,7 +1,7 @@
 package javafx.scene.chart;
 
 /**
- * Created by ahealey on 29/01/16.
+ * @author Adrian Healey <adrian.j.healey@gmail.com>
  */
 public class SankeyChart {
 }
