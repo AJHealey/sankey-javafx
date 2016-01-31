@@ -28,9 +28,26 @@ public class SankeyChart extends Chart{
         return nodes;
     }
 
+    public void addNode(SankeyNode newNode) {
+        this.nodes.add(newNode);
+    }
+
+    public void addNodes(SankeyNode newNodes) {
+        this.nodes.add(newNodes);
+    }
+
     public Set<SankeyLink> getLinks() {
         return links;
     }
+
+    public void addLink(SankeyLink newLink) {
+        this.links.add(newLink);
+    }
+
+    public void addLinks(Collection<SankeyLink> newLinks) {
+        this.links.addAll(newLinks);
+    }
+
 
     public double getNodePadding() {
         return nodePadding;
@@ -53,7 +70,11 @@ public class SankeyChart extends Chart{
         computeNodesValue();
         resetNodesHorizontalPosition();
         computeNodesHorizontalPositionFor(nodes);
+        computeNodesVerticalPositionFor(nodes);
 
+    }
+
+    private void computeNodesVerticalPositionFor(Set<SankeyNode> nodes) {
     }
 
     // TODO - manage cycles
@@ -99,7 +120,7 @@ public class SankeyChart extends Chart{
                 .sum();
     }
 
-    private double sumOfLinksFrom(SankeyNode node) {
+    double sumOfLinksFrom(SankeyNode node) {
         return links.stream()
                 .filter(link -> link.getSource().equals(node))
                 .mapToDouble(SankeyLink::getValue)
