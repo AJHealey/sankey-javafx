@@ -5,9 +5,8 @@ import javafx.beans.NamedArg;
 import javafx.beans.property.*;
 import javafx.geometry.Rectangle2D;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.Math.max;
@@ -49,13 +48,23 @@ public class SankeyChart extends Chart {
         computeNodesValue();
         resetNodesHorizontalPosition();
         computeNodesHorizontalPosition();
-        computeNodesVerticalPositionFor(nodes);
-
-
+        computeNodesVerticalPosition();
     }
 
-    private void computeNodesVerticalPositionFor(Set<SankeyNode> nodes) {
+    void computeNodesVerticalPosition() {
+        nodes.stream()
+                .mapToInt(SankeyNode::getHorizontalPosition)
+                .distinct()
+                .forEach(this::computeVerticalPositionForNodesInColumn);
+    }
 
+    private void computeVerticalPositionForNodesInColumn(int column) {
+        List<SankeyNode> orderedNodes = nodes.stream()
+                .filter(node -> node.horizontalPosition == column)
+                .sorted((o1, o2) -> o1.value.compareTo(o2.value))
+                .collect(toList());
+        IntStream.range(0, orderedNodes.size())
+                .forEach(i -> orderedNodes.get(i).verticalPosition = i);
     }
 
     void computeNodesHorizontalPosition() {
@@ -161,6 +170,8 @@ public class SankeyChart extends Chart {
 
         private int horizontalPosition;
 
+        private int verticalPosition;
+
         public Double getValue() {
             return value;
         }
@@ -174,7 +185,11 @@ public class SankeyChart extends Chart {
         }
 
         public void setHorizontalPosition(int horizontalPosition) {
-            SankeyNode.this.horizontalPosition = horizontalPosition;
+            this.horizontalPosition = horizontalPosition;
+        }
+
+        public int getVerticalPosition() {
+            return verticalPosition;
         }
 
         /**
@@ -187,6 +202,7 @@ public class SankeyChart extends Chart {
             SankeyNode.this.name.setValue(name);
             SankeyNode.this.value = 0.0;
             SankeyNode.this.horizontalPosition = 0;
+            SankeyNode.this.verticalPosition = 0;
         }
 
         @Override

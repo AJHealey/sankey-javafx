@@ -53,6 +53,26 @@ public class SankeyChartTest {
     }
 
     @Test
+    public void computeNodesVerticalPositionTest() {
+        node1.setHorizontalPosition(0);
+        node2.setHorizontalPosition(1);
+        node3.setHorizontalPosition(1);
+        node4.setHorizontalPosition(2);
+
+        node1.setValue(13.0);
+        node2.setValue(2.0);
+        node3.setValue(5.0);
+        node4.setValue(7.0);
+
+        sankey.computeNodesVerticalPosition();
+
+        assertThat(node1.getVerticalPosition(), is(equalTo(0)));
+        assertThat(node2.getVerticalPosition(), is(equalTo(0)));
+        assertThat(node3.getVerticalPosition(), is(equalTo(1)));
+        assertThat(node4.getVerticalPosition(), is(equalTo(0)));
+    }
+
+    @Test
     public void computeNodesHorizontalPositionForTest() {
         sankey.computeNodesHorizontalPosition();
 
