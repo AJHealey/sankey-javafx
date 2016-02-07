@@ -1,11 +1,13 @@
 package javafx.scene.chart;
 
-import com.sun.javafx.geom.CubicCurve2D;
-import javafx.beans.NamedArg;
 import javafx.beans.property.*;
-import javafx.geometry.Rectangle2D;
+import javafx.scene.shape.CubicCurve;
+import javafx.scene.shape.Rectangle;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -25,8 +27,8 @@ public class SankeyChart extends Chart {
     private Set<SankeyLink> links;
 
     public SankeyChart() {
-        nodes = new HashSet<SankeyNode>();
-        links = new HashSet<SankeyLink>();
+        nodes = new HashSet<>();
+        links = new HashSet<>();
     }
 
     public Set<SankeyNode> getNodes() {
@@ -49,6 +51,18 @@ public class SankeyChart extends Chart {
         resetNodesHorizontalPosition();
         computeNodesHorizontalPosition();
         computeNodesVerticalPosition();
+
+        computeNodesHeight(height);
+
+        // Add nodes and links
+        nodes.stream()
+                .forEach(node -> this.getChartChildren().add(node));
+        links.stream()
+                .forEach(link -> this.getChartChildren().add(link));
+
+    }
+
+    private void computeNodesHeight(double height) {
     }
 
     void computeNodesVerticalPosition() {
@@ -145,7 +159,7 @@ public class SankeyChart extends Chart {
 
     // Data classes
 
-    public static class SankeyNode extends Rectangle2D {
+    public static class SankeyNode extends Rectangle {
 
         private StringProperty name = new StringPropertyBase() {
             @Override
@@ -231,7 +245,7 @@ public class SankeyChart extends Chart {
      * Represent a link between two node of the Sankey
      * chart.
      */
-    public static class SankeyLink extends CubicCurve2D {
+    public static class SankeyLink extends CubicCurve {
         private SankeyNode source;
         private SankeyNode target;
 
