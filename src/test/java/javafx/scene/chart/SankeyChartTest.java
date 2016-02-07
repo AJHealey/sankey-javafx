@@ -1,6 +1,10 @@
 package javafx.scene.chart;
 
+import javafx.application.Application;
 import javafx.embed.swing.JFXPanel;
+import javafx.scene.chart.SankeyChart.SankeyLink;
+import javafx.scene.chart.SankeyChart.SankeyNode;
+import javafx.stage.Stage;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,6 +30,7 @@ public class SankeyChartTest {
     @Before
     public void setUp() {
         new JFXPanel();
+
         sankey = new SankeyChart();
 
         node1 = new SankeyNode("node1");
@@ -37,10 +42,10 @@ public class SankeyChartTest {
         sankey.addNode(node3);
         sankey.addNode(node4);
 
-        link1 = new SankeyLink(node1, node2, 2);
-        link2 = new SankeyLink(node1, node3, 5);
-        link3 = new SankeyLink(node3, node4, 1);
-        link4 = new SankeyLink(node1, node4, 6);
+        link1 = new SankeyLink(node1, node2, 2.);
+        link2 = new SankeyLink(node1, node3, 5.);
+        link3 = new SankeyLink(node3, node4, 1.);
+        link4 = new SankeyLink(node1, node4, 6.);
         sankey.addLink(link1);
         sankey.addLink(link2);
         sankey.addLink(link3);
@@ -49,12 +54,12 @@ public class SankeyChartTest {
 
     @Test
     public void computeNodesHorizontalPositionForTest() {
-        sankey.computeNodesHorizontalPositionFor(sankey.getNodes());
+        sankey.computeNodesHorizontalPosition();
 
-        assertThat(node1.getColumn(), is(equalTo(0)));
-        assertThat(node2.getColumn(), is(equalTo(1)));
-        assertThat(node3.getColumn(), is(equalTo(1)));
-        assertThat(node4.getColumn(), is(equalTo(2)));
+        assertThat(node1.getHorizontalPosition(), is(equalTo(0)));
+        assertThat(node2.getHorizontalPosition(), is(equalTo(1)));
+        assertThat(node3.getHorizontalPosition(), is(equalTo(1)));
+        assertThat(node4.getHorizontalPosition(), is(equalTo(2)));
 
     }
 
@@ -83,4 +88,5 @@ public class SankeyChartTest {
         assertThat(sankey.sumOfLinksTargeting(node3), is(equalTo(5.0)));
         assertThat(sankey.sumOfLinksTargeting(node4), is(equalTo(7.0)));
     }
+
 }
