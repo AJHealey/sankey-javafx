@@ -4,10 +4,7 @@ import javafx.beans.property.*;
 import javafx.scene.shape.CubicCurve;
 import javafx.scene.shape.Rectangle;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -52,7 +49,8 @@ public class SankeyChart extends Chart {
         computeNodesHorizontalPosition();
         computeNodesVerticalPosition();
 
-        computeNodesHeight(height);
+        computeNodesCoordinates(top, left, width, height);
+        createLinksCurves();
 
         // Add nodes and links
         nodes.stream()
@@ -62,7 +60,72 @@ public class SankeyChart extends Chart {
 
     }
 
-    private void computeNodesHeight(double height) {
+    void createLinksCurves() {
+
+    }
+
+    void computeNodesCoordinates(double top, double left, double width, double height) {
+        double ratio = computeNodeValueToHeightRatio(height);
+        // define nodes height
+        nodes.stream()
+                .forEach(node -> node.setHeight(node.value * ratio));
+        // define nodes width
+        nodes.stream()
+                .forEach(node -> node.setWidth(this.nodeWidth));
+        // define nodes x coordinate
+        double xNodesPadding = computeNodesHorizontalPadding(width);
+        nodes.stream()
+                .forEach(node -> node.setX(left + node.getHorizontalPosition() * xNodesPadding));
+        // define nodes y coordinate
+        computeNodesYCoordinate(top);
+    }
+
+    private void computeNodesYCoordinate(double top) {
+        nodes.stream()
+                .mapToInt(SankeyNode::getHorizontalPosition)
+                .distinct()
+                .forEach(column -> computeYCoordinateForNodesInColumn(column, top));
+    }
+
+    private void computeYCoordinateForNodesInColumn(int i, double top) {
+        List<SankeyNode> nodesInColumn = nodes.stream()
+                .filter(node -> node.getHorizontalPosition() == i)
+                .sorted((o1, o2) -> o1.value.compareTo(o2.value))
+                .collect(toList());
+
+        double currentY = top;
+        for(SankeyNode node : nodesInColumn) {
+            node.setY(currentY);
+            currentY += node.getHeight() + nodePadding;
+        }
+    }
+
+    private double computeNodesHorizontalPadding(double width) {
+        long numberOfColumn = nodes.stream()
+                .mapToInt(SankeyNode::getHorizontalPosition)
+                .distinct()
+                .count();
+
+        return numberOfColumn > 1 ? width / (numberOfColumn - 1) : 0.0;
+    }
+
+    private double computeNodeValueToHeightRatio(double height) {
+        OptionalDouble totalValueOfTheBiggestColumn = nodes.stream()
+                .mapToInt(SankeyNode::getHorizontalPosition)
+                .distinct()
+                .mapToDouble(this::computeTotalValueForColumn)
+                .max();
+
+        return totalValueOfTheBiggestColumn.isPresent()  ?
+                height/totalValueOfTheBiggestColumn.getAsDouble() :
+                0.0;
+    }
+
+    private double computeTotalValueForColumn(int column) {
+        return nodes.stream()
+                .filter(nodes -> nodes.getHorizontalPosition() == column)
+                .mapToDouble(SankeyNode::getValue)
+                .sum();
     }
 
     void computeNodesVerticalPosition() {
@@ -102,7 +165,7 @@ public class SankeyChart extends Chart {
 
     void resetNodesHorizontalPosition() {
         nodes.stream()
-                .forEach(node -> node.setValue(0.0));
+                .forEach(node -> node.setHorizontalPosition(0));
     }
 
     void computeNodesValue() {
@@ -325,5 +388,7 @@ public class SankeyChart extends Chart {
             return result;
         }
     }
+
+
 
 }
