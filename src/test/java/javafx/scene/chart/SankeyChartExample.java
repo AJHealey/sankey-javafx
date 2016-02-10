@@ -5,6 +5,7 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.chart.SankeyChart.SankeyLink;
 import javafx.scene.chart.SankeyChart.SankeyNode;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /**
@@ -21,9 +22,14 @@ public class SankeyChartExample extends Application {
         SankeyChart sankey = new SankeyChart();
 
         SankeyNode node1 = new SankeyNode("node1");
+        node1.setFill(Color.YELLOW);
         SankeyNode node2 = new SankeyNode("node2");
+        node2.setFill(Color.FUCHSIA);
         SankeyNode node3 = new SankeyNode("node3");
+        node3.setFill(Color.SADDLEBROWN);
         SankeyNode node4 = new SankeyNode("node4");
+        node4.setFill(Color.BLUEVIOLET);
+
         sankey.addNode(node1);
         sankey.addNode(node2);
         sankey.addNode(node3);
