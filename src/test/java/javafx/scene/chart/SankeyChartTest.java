@@ -1,10 +1,6 @@
 package javafx.scene.chart;
 
-import javafx.application.Application;
 import javafx.embed.swing.JFXPanel;
-import javafx.scene.chart.SankeyChart.SankeyLink;
-import javafx.scene.chart.SankeyChart.SankeyNode;
-import javafx.stage.Stage;
 import org.junit.Before;
 import org.junit.Test;
 

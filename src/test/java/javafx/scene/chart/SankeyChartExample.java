@@ -3,8 +3,6 @@ package javafx.scene.chart;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.chart.SankeyChart.SankeyLink;
-import javafx.scene.chart.SankeyChart.SankeyNode;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
