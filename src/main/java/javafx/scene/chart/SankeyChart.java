@@ -1,5 +1,7 @@
 package javafx.scene.chart;
 
+import javafx.collections.ObservableSet;
+
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -8,8 +10,6 @@ import static java.lang.Math.max;
 import static java.util.Comparator.comparingDouble;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static javafx.scene.paint.Color.TRANSPARENT;
-import static javafx.scene.shape.StrokeLineCap.BUTT;
 
 /**
  * @author Adrian Healey <adrian.j.healey@gmail.com>
@@ -19,23 +19,15 @@ public class SankeyChart extends Chart {
     private double nodeWidth = 24;
     private double nodePadding = 8;
 
-    private double valueToHeigthRatio = 0.0;
+    private double valueToHeightRatio = 0.0;
 
-    private Set<SankeyNode> nodes;
-    private Set<SankeyLink> links;
+    private ObservableSet<SankeyNode> nodes;
+    private ObservableSet<SankeyLink> links;
 
-    public SankeyChart() {
-        nodes = new HashSet<>();
-        links = new HashSet<>();
-    }
-
-    public Set<SankeyNode> getNodes() {
-        return nodes;
-    }
-
-    public void addNodes(Collection<SankeyNode> nodes) {
-        nodes.stream()
-                .forEach(this::addNode);
+    public SankeyChart(ObservableSet<SankeyNode> nodes,
+                       ObservableSet<SankeyLink> links) {
+        this.nodes = nodes;
+        this.links = links;
     }
 
     public void addNode(SankeyNode newNode) {
@@ -46,21 +38,17 @@ public class SankeyChart extends Chart {
 
     public void addLink(SankeyLink newLink) {
         this.links.add(newLink);
+        newLink.setChart(this);
     }
 
     @Override
     protected void layoutChartChildren(double top, double left, double width, double height) {
-        // Nodes
-        computeNodesValue();
-        resetNodesHorizontalPosition();
-        computeNodesHorizontalPosition();
-        computeNodesVerticalPosition();
-        computeNodesCoordinates(top, left, width, height);
         // Links
         computeLinksStartCoordinates();
         computeLinksEndCoordinates();
         computeLinksControlsPoints();
-        setLinksColors();
+        links.stream()
+                .forEach(link -> link.setStrokeWidth(link.getValue() * valueToHeightRatio));
     }
 
     private void computeLinksControlsPoints() {
@@ -68,33 +56,27 @@ public class SankeyChart extends Chart {
                 .forEach(this::computeControlPointsFor);
     }
 
+    /**
+     * Compute control points of the curve representing the given
+     * link.
+     *
+     * @param link the link for which the control points will be
+     *             computed
+     */
     private void computeControlPointsFor(SankeyLink link) {
-        link.setControlY1(link.getStartY());
-        link.setControlY2(link.getEndY());
         double interDistance = (link.getEndX() - link.getStartX()) / 3;
         link.setControlX1(link.getStartX() + interDistance);
+        link.setControlY1(link.getStartY());
         link.setControlX2(link.getStartX() + 2 * interDistance);
-    }
-
-    private void setLinksColors() {
-        links.stream()
-                .forEach(link -> link.setStroke(link.getSource().getFill()));
-        links.stream()
-                .forEach(link -> link.setOpacity(0.3));
-        links.stream()
-                .forEach(link -> link.setFill(TRANSPARENT));
-        links.stream()
-                .forEach(link -> link.setStrokeLineCap(BUTT));
-        links.stream()
-                .forEach(link -> link.setStrokeWidth(link.getValue() * valueToHeigthRatio));
+        link.setControlY2(link.getEndY());
     }
 
     void computeLinksStartCoordinates() {
         nodes.stream()
-                .forEach(this::computeLinksCoordinatesOutgoingFrom);
+                .forEach(this::computeCoordinatesForLinksOutgoingFrom);
     }
 
-    private void computeLinksCoordinatesOutgoingFrom(SankeyNode node) {
+    private void computeCoordinatesForLinksOutgoingFrom(SankeyNode node) {
         List<SankeyLink> outgoingLinks = links.stream()
                 .filter(link -> link.getSource().equals(node))
                 .sorted(comparingDouble(link -> link.getTarget().getY()))
@@ -102,18 +84,18 @@ public class SankeyChart extends Chart {
 
         double currentY = node.getY();
         for(SankeyLink link : outgoingLinks) {
-            link.setStartY(currentY + link.getValue() * valueToHeigthRatio / 2);
+            link.setStartY(currentY + link.getValue() * valueToHeightRatio / 2);
             link.setStartX(node.getX() + node.getWidth());
-            currentY += link.getValue() * valueToHeigthRatio;
+            currentY += link.getValue() * valueToHeightRatio;
         }
     }
 
     private void computeLinksEndCoordinates() {
         nodes.stream()
-                .forEach(this::computeLinksCoordinatesIncomingTo);
+                .forEach(this::computeCoordinatesForLinksIncomingTo);
     }
 
-    private void computeLinksCoordinatesIncomingTo(SankeyNode node) {
+    private void computeCoordinatesForLinksIncomingTo(SankeyNode node) {
         List<SankeyLink> incomingNodes = links.stream()
                 .filter(link -> link.getTarget().equals(node))
                 .sorted(comparingDouble(link -> link.getSource().getX()))
@@ -121,9 +103,9 @@ public class SankeyChart extends Chart {
 
         double currentY = node.getY();
         for (SankeyLink link : incomingNodes) {
-            link.setEndY(currentY + link.getValue() * valueToHeigthRatio / 2);
+            link.setEndY(currentY + link.getValue() * valueToHeightRatio / 2);
             link.setEndX(node.getX());
-            currentY += link.getValue() * valueToHeigthRatio;
+            currentY += link.getValue() * valueToHeightRatio;
         }
     }
 
@@ -143,7 +125,7 @@ public class SankeyChart extends Chart {
         computeNodeValueToHeightRatio(height);
         // define nodes height
         nodes.stream()
-                .forEach(node -> node.setHeight(node.getValue() * this.valueToHeigthRatio));
+                .forEach(node -> node.setHeight(node.getValue() * this.valueToHeightRatio));
         // define nodes width
         nodes.stream()
                 .forEach(node -> node.setWidth(this.nodeWidth));
@@ -217,7 +199,7 @@ public class SankeyChart extends Chart {
                 .mapToDouble(this::computeTotalValueForColumn)
                 .max();
 
-        this.valueToHeigthRatio = totalValueOfTheBiggestColumn.isPresent()  ?
+        this.valueToHeightRatio = totalValueOfTheBiggestColumn.isPresent()  ?
                 height/totalValueOfTheBiggestColumn.getAsDouble() :
                 0.0;
     }
@@ -289,14 +271,6 @@ public class SankeyChart extends Chart {
     }
 
     /**
-     * Reset the horizontal position of each node to 0.
-     */
-    void resetNodesHorizontalPosition() {
-        nodes.stream()
-                .forEach(node -> node.setHorizontalPosition(0));
-    }
-
-    /**
      * Compute the value of each node.
      */
     void computeNodesValue() {
@@ -359,27 +333,21 @@ public class SankeyChart extends Chart {
                 .collect(toList());
     }
 
-    /**
-     * Compute the list of nodes targeted by the given node
-     *
-     * @param node the source node
-     * @return the list of nodes targeted by {@code node}
-     */
-    Collection<SankeyNode> outgoingNodesOf(SankeyNode node) {
-        return links.stream()
-                .filter(link -> link.getSource().equals(node))
-                .map(SankeyLink::getTarget)
-                .collect(toList());
-    }
-
     // Events
     protected void valueHasChangedFor(SankeyLink sankeyLink) {
     }
 
-    protected void valueHasChangedFor(SankeyNode sankeyNode) {
+    protected void nameHasChangedFor(SankeyNode sankeyNode) {
     }
 
-
-    protected void nameHasChangedFor(SankeyNode sankeyNode) {
+    public void positionHasChangedFor(SankeyNode node) {
+        if(nodes.contains(node)) {
+            computeCoordinatesForLinksIncomingTo(node);
+            computeCoordinatesForLinksOutgoingFrom(node);
+            links.stream()
+                    .filter(link -> link.isRelatedTo(node))
+                    .forEach(this::computeControlPointsFor);
+            requestChartLayout();
+        }
     }
 }

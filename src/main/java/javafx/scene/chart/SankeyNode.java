@@ -4,9 +4,10 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.StringPropertyBase;
 import javafx.event.EventHandler;
-import javafx.scene.Cursor;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Rectangle;
+
+import static javafx.scene.Cursor.OPEN_HAND;
 
 /**
  * Created by Adrian Healey <adrian.j.healey@gmail.com>
@@ -77,7 +78,9 @@ public class SankeyNode extends Rectangle {
         this.value = 0.0;
         this.horizontalPosition = 0;
         this.verticalPosition = 0;
-        this.setCursor(Cursor.OPEN_HAND);
+        this.setCursor(OPEN_HAND);
+
+        // Event handler
         this.setOnMousePressed(nodeOnMousePressedEventHandler);
         this.setOnMouseDragged(nodeOnMouseDraggedEventHandler);
     }
@@ -97,11 +100,11 @@ public class SankeyNode extends Rectangle {
                     this.setY(this.getY() + t.getSceneY() - originalY);
                     originalX = t.getSceneX();
                     originalY = t.getSceneY();
-                    this.chart.get().requestChartLayout();
+                    chart.get().positionHasChangedFor(this);
                 }
             };
 
-    public void moveToRight() {
+    protected void moveToRight() {
         horizontalPosition ++;
     }
 }
